@@ -2,9 +2,6 @@ import { Client, LocalAuth } from "whatsapp-web.js";
 import { image as imageQr } from "qr-image";
 import LeadExternal from "../../domain/lead-external.repository";
 
-/**
- * Extendemos los super poderes de whatsapp-web
- */
 class WsTransporter extends Client implements LeadExternal {
   private status = false;
 
@@ -40,16 +37,16 @@ class WsTransporter extends Client implements LeadExternal {
     });
   }
 
-  /**
-   * Enviar mensaje de WS
-   * @param lead
-   * @returns
-   */
-  async sendMsg(lead: { message: string; phone: string }): Promise<any> {
+  async sendMsg(lead: { message: string; phone: string; imageUrl?: string }): Promise<any> {
     try {
       if (!this.status) return Promise.resolve({ error: "WAIT_LOGIN" });
-      const { message, phone } = lead;
-      const response = await this.sendMessage(`${phone}@c.us`, message);
+      const { message, phone, imageUrl } = lead;
+      let response;
+      if (imageUrl) {
+        response = await this.sendMessage(`${phone}@c.us`, imageUrl, { caption: message });
+      } else {
+        response = await this.sendMessage(`${phone}@c.us`, message);
+      }
       return { id: response.id.id };
     } catch (e: any) {
       return Promise.resolve({ error: e.message });
